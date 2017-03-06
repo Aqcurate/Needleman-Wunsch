@@ -25,5 +25,10 @@ Call the alignStrands method in main.
 
     alignStrands("GATTACA", "GCATGCU");
 
+Compile and run the java file.
+
+    javac NeedlemanWunsch.java
+    java NeedlemanWunsch 
+
 ## License
 This java implementation is released under the [MIT License](LICENSE).
