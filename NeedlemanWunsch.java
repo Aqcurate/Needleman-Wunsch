@@ -15,7 +15,7 @@ public class NeedlemanWunsch {
     // Default scoring scheme for match, mismatch, and indel
     public static final int START = 0;
     public static final int MATCH = 1;
-    public static final int MISMATCH = -10;
+    public static final int MISMATCH = -100;
     public static final int INDEL = -1;
 
     /**
@@ -152,23 +152,96 @@ public class NeedlemanWunsch {
         return new String[] {alignedStrand1, alignedStrand2};
     }
     
+    public static String[] recursiveFindPath(int[][] solution, String strand1, String strand2, int i, int j) {
+        String alignedStrand1 = "";
+        String alignedStrand2 = "";
+
+        // If you are at the top of the matrix
+        if (i == 0) {
+            // Append "-" for every space you are away from 0,0 to strand2
+            // EX: If you are at 0,3 (j = 3), add "---" to strand2
+            for (int k = 0; k < j; k++) {
+                alignedStrand1 = "-" + alignedStrand1;
+                alignedStrand2 = strand2.charAt(j-1) + alignedStrand2;
+            }
+
+            return new String[] {alignedStrand1, alignedStrand2};
+        // If you are at the left most side of the matrix
+        } else if (j == 0) {
+            // Append "-" for every space you are away from 0,0 to strand1
+            // EX: If you are at 3,0 (i = 3), add "---" to strand1
+            for (int k = 0; k < i; k++) {
+                alignedStrand1 = strand1.charAt(i-1) + alignedStrand1;
+                alignedStrand2 = "-" + alignedStrand2;
+            }
+
+            return new String[] {alignedStrand1, alignedStrand2};
+        }
+
+        // Calculate the best path to the current position
+        // Check position to the left, above, and top-left
+        int best = max(solution[i][j-1], solution[i-1][j],  solution[i-1][j-1]);
+        // If the top-left position is the best
+        if (solution[i-1][j-1] == best) {
+            // Add the character corresponding to that position to both strands
+            // This is the case for either a match or mismatch
+            alignedStrand1 = "" + strand1.charAt(i-1);
+            alignedStrand2 = "" + strand2.charAt(j-1);
+            // Move to the new position
+            i -= 1;
+            j -= 1;
+        // If the left position is the best
+        } else if (solution[i][j-1] == best) {
+            // Add '-' to strand1
+            // Add the character correponding to that position to strand2
+            // This represents a gap in the side strand
+            alignedStrand1 = "-";
+            alignedStrand2 = "" + strand2.charAt(j-1);
+            // Move to the new position
+            j -= 1;
+        // If the above position is the best
+        } else {
+            // Add '-' to strand2
+            // Add the character corresponding to that position to strand1
+            // This represents a gap in the top strand
+            alignedStrand1 = "" + strand1.charAt(i-1);
+            alignedStrand2 = "-";
+            // Move to the new position
+            i -= 1;
+        }
+
+        String[] alignedStrands = recursiveFindPath(solution, strand1, strand2, i, j);
+        alignedStrand1 = alignedStrands[0] + alignedStrand1;
+        alignedStrand2 = alignedStrands[1] + alignedStrand2;
+
+        return new String[] {alignedStrand1, alignedStrand2};
+    }
+
+    
     /**
      * Method that abstracts away findSolution and findPath.
      * Prints out the aligned strands and alignment score.
      */
     public static void alignStrands(String strand1, String strand2) {
         int[][] solution = findSolution(strand1, strand2);
+        System.out.println(Arrays.deepToString(solution));
         int score = solution[solution.length-1][solution[0].length-1];
         String[] alignedStrands = findPath(solution, strand1, strand2);
 
         System.out.println(alignedStrands[0]);
         System.out.println(alignedStrands[1]);
 
+        alignedStrands = recursiveFindPath(solution, strand1, strand2, solution.length-1, solution[0].length-1);
+
+        System.out.println("RECURSIVE FUN");
+        System.out.println(alignedStrands[0]);
+        System.out.println(alignedStrands[1]);
+
         System.out.println("The score for this alignment is: " + score);
     }
-
+    
     public static void main(String[] args) {
-       alignStrands("ABC", "CAB");
+       alignStrands("UUAGG", "CGGCC");
 //        System.out.println();
 //        alignStrands("GATTACA", "GCATGCU");
 //        System.out.println();
