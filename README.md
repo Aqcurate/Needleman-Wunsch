@@ -1,8 +1,7 @@
 # Nucleotide Alignment - Needleman Wunsch
 [![Code Climate](https://codeclimate.com/github/EscapingGithub/Needleman-Wunsch/badges/gpa.svg)](https://codeclimate.com/github/EscapingGithub/Needleman-Wunsch)
-[![codebeat badge](https://codebeat.co/badges/676857fc-0080-4473-89af-2e2e09a34fcb)](https://codebeat.co/projects/github-com-escapinggithub-needleman-wunsch-master)
 
-**Version:** 1.0.0
+**Version:** 2.0.0
 
 **Authors:** Andrew Quach and Tamir Enkhjargal
 
