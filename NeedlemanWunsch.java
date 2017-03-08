@@ -1,5 +1,4 @@
 import java.lang.Math;
-import java.util.Arrays;
 
 /**
  * This class uses the Needleman-Wunsch algorithm
@@ -8,32 +7,86 @@ import java.util.Arrays;
  * @author Andrew Quach
  * @author Tamir Enkhjargal
  *
- * @version 1.0.0
+ * @version 2.0.0
  */
 public class NeedlemanWunsch {
 
-    // Default scoring scheme for match, mismatch, and indel
+    // Scoring scheme for match, mismatch, and indel
     private final int MATCH;
     private final int MISMATCH;
     private final int INDEL;
 
+    // Strands to be analyzed
     private String strand1;
     private String strand2;
     
+    // Validity of mismatching
     private boolean allowMismatch;
 
+    // Solution matrix, score, and alignedStrings to be calculated
+    private int[][] solution;
+    private int score;
+    private String[] alignedStrands;
+
+    /**
+     * Constructor taking in two strands.
+     * Default values:
+     * MATCH = 1
+     * MISMATCH = -1
+     * INDEL = -1
+     * allowMismatch = true
+     *
+     * @param strand1 the first strand
+     * @param strand2 the second strand
+     */
     public NeedlemanWunsch(String strand1, String strand2) {
         this(strand1, strand2, 1, -1, -1, true);
     }
 
+    /**
+     * Constructor taking in two strands and whether mismatching
+     * is allowed.
+     * Default values:
+     * MATCH = 1
+     * MISMATCH = -1 / -999
+     * INDEL = -1
+     *
+     * @param strand1 the first strand
+     * @param strand2 the second strand
+     * @param allowMismatch whether mismatching is allowed
+     */
     public NeedlemanWunsch(String strand1, String strand2, boolean allowMismatch) {
         this(strand1, strand2, 1, allowMismatch ? -1 : -999, -1, allowMismatch);
     }
 
+    /**
+     * Constructor taking in two strands and the scoring system.
+     * Default values:
+     * allowedMismatch = true
+     *
+     * @param strand1 the first strand
+     * @param strand2 the second strand
+     * @param match the value of a match
+     * @param mismatch the value of a mismatch
+     * @param indel the value of an indel
+     */
     public NeedlemanWunsch(String strand1, String strand2, int match, int mismatch, int indel) {
         this(strand1, strand2, match, mismatch, indel, true);
     }
 
+    /**
+     * Constructor taking in two strands and the scoring system
+     * and whether mismatching is allowed.
+     * Calculates the solution matrix, the end score, and the
+     * aligned strands.
+     *
+     * @param strand1 the first strand
+     * @param strand2 the second strand
+     * @param match the value of a match
+     * @param mismatch the value of a mismatch
+     * @param indel the value of an indel
+     * @param allowMismatch whether mismatching is allowed
+     */
     public NeedlemanWunsch(String strand1, String strand2, int match, int mismatch, int indel, boolean allowMismatch) {
         this.strand1 = strand1;
         this.strand2 = strand2;
@@ -43,6 +96,13 @@ public class NeedlemanWunsch {
         this.INDEL = indel;
 
         this.allowMismatch = allowMismatch;
+
+        // Calculate solution matrix
+        this.solution = findSolution();
+        // Calculate score
+        this.score = solution[solution.length-1][solution[0].length-1];
+        // Calculate aligned strands
+        this.alignedStrands = recursiveFindPath(solution.length-1, solution[0].length-1);
     }
 
     /**
@@ -57,7 +117,7 @@ public class NeedlemanWunsch {
         // Let strand2 be the top strand
         int[][] solution = new int[strand1.length()+1][strand2.length()+1];
 
-        // Set the starting point to value of START
+        // Set the starting point to value of 0
         solution[0][0] = 0;
 
         // Fill in the top row. Moving to the right always adds the value of INDEL.
@@ -110,7 +170,7 @@ public class NeedlemanWunsch {
       * 
       * @return the two aligned RNA strands
       */
-    public String[] findPath(int[][] solution) {
+    public String[] findPath() {
         // Let strand1 be the side strand
         // Let strand2 be the top strand
         String alignedStrand1 = "";
@@ -126,8 +186,12 @@ public class NeedlemanWunsch {
         // While you are not at the top/left side of the matrix
         // This prevents an OOB exception
         while (i != 0  && j != 0) {
+            // Reset matchAllowed value
             matchAllowed = true;
+            // If the characters are different, and mismatching is not allowed
+            // Diagonal moves are not legal
             if (strand1.charAt(i-1) != strand2.charAt(j-1) && !allowMismatch) matchAllowed = false;
+            // Calculate the highest value of the top-left, above, and left positions.
             best = max(solution[i][j-1], solution[i-1][j], solution[i-1][j-1]);
             // Calculate the best path to the current position
             // If the top-left position is the best
@@ -163,6 +227,7 @@ public class NeedlemanWunsch {
 
         // If you are at the top of the matrix
         if (i == 0) {
+            // Append characters corresponding to those positions to strand1
             // Append "-" for every space you are away from 0,0 to strand2
             // EX: If you are at 0,3 (j = 3), add "---" to strand2
             for (int k = 0; k < j; k++) {
@@ -172,6 +237,7 @@ public class NeedlemanWunsch {
         // If you are at the left most side of the matrix
         } else {
             // Append "-" for every space you are away from 0,0 to strand1
+            // Append characters corresponding to those positions to strand2
             // EX: If you are at 3,0 (i = 3), add "---" to strand1
             for (int k = 0; k < i; k++) {
                 alignedStrand1 = strand1.charAt(i-k) + alignedStrand1;
@@ -182,14 +248,23 @@ public class NeedlemanWunsch {
         return new String[] {alignedStrand1, alignedStrand2};
     }
     
-    public String[] recursiveFindPath(int[][] solution, int i, int j) {
+     /**
+      * Aligns RNA strands based off a solution matrix.
+      * Finds one of the 'best' paths in the solution matrix.
+      * Uses the 'best' path to generate aligned RNA strands.
+      * This method does so recursively.
+      * 
+      * @return the two aligned RNA strands
+      */
+    public String[] recursiveFindPath(int i, int j) {
         String alignedStrand1 = "";
         String alignedStrand2 = "";
 
         // If you are at the top of the matrix
         if (i == 0) {
-            // Append "-" for every space you are away from 0,0 to strand1
-            // EX: If you are at 0,3 (j = 3), add "---" to strand1
+            // Append characters corresponding to those positions to strand1
+            // Append "-" for every space you are away from 0,0 to strand2
+            // EX: If you are at 0,3 (j = 3), add "---" to strand2
             for (int k = 0; k < j; k++) {
                 alignedStrand1 = "-" + alignedStrand1;
                 alignedStrand2 = strand2.charAt(j-k) + alignedStrand2;
@@ -198,7 +273,8 @@ public class NeedlemanWunsch {
             return new String[] {alignedStrand1, alignedStrand2};
         // If you are at the left most side of the matrix
         } else if (j == 0) {
-            // Append "-" for every space you are away from 0,0 to strand2
+            // Append "-" for every space you are away from 0,0 to strand1
+            // Append characters corresponding to those positions to strand2
             // EX: If you are at 3,0 (i = 3), add "---" to strand1
             for (int k = 0; k < i; k++) {
                 alignedStrand1 = strand1.charAt(i-k) + alignedStrand1;
@@ -213,6 +289,8 @@ public class NeedlemanWunsch {
         int best;
         boolean matchAllowed = true;
 
+        // If the characters are different, and mismatching is not allowed
+        // Diagonal moves are not legal
         if (strand1.charAt(i-1) != strand2.charAt(j-1) && !allowMismatch) matchAllowed = false;
         best = max(solution[i][j-1], solution[i-1][j],  solution[i-1][j-1]);
 
@@ -243,36 +321,27 @@ public class NeedlemanWunsch {
             alignedStrand2 = "-";
             // Move to the new position
             i -= 1;
-        // If the top-left position is the best
         }
 
-        String[] alignedStrands = recursiveFindPath(solution, i, j);
+        // Recursively find the characters for strand1/strand2 in the next position
+        String[] alignedStrands = recursiveFindPath(i, j);
+        // Attach the found characters to current alignedStrands
         alignedStrand1 = alignedStrands[0] + alignedStrand1;
         alignedStrand2 = alignedStrands[1] + alignedStrand2;
 
         return new String[] {alignedStrand1, alignedStrand2};
     }
 
-    
     /**
-     * Method that abstracts away findSolution and findPath.
+     * Method that prints out the alignment information.
      * Prints out the aligned strands and alignment score.
      */
-    public void alignStrands() {
-        int[][] solution = findSolution();
-        System.out.println(Arrays.deepToString(solution));
-        int score = solution[solution.length-1][solution[0].length-1];
-        String[] alignedStrands = findPath(solution);
-
+    public void printStrandInfo() {
+        // Print out side strand
         System.out.println(alignedStrands[0]);
+        // Print out top strand
         System.out.println(alignedStrands[1]);
-
-        alignedStrands = recursiveFindPath(solution, solution.length-1, solution[0].length-1);
-
-        System.out.println("RECURSIVE FUN");
-        System.out.println(alignedStrands[0]);
-        System.out.println(alignedStrands[1]);
-
+        // Print out strand score
         System.out.println("The score for this alignment is: " + score);
     }
 }
