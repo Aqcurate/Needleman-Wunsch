@@ -1,4 +1,5 @@
 import java.lang.Math;
+import java.util.Arrays;
 
 /**
  * This class uses the Needleman-Wunsch algorithm
@@ -14,7 +15,7 @@ public class NeedlemanWunsch {
     // Default scoring scheme for match, mismatch, and indel
     public static final int START = 0;
     public static final int MATCH = 1;
-    public static final int MISMATCH = -1;
+    public static final int MISMATCH = -10;
     public static final int INDEL = -1;
 
     /**
@@ -135,14 +136,16 @@ public class NeedlemanWunsch {
             // Append "-" for every space you are away from 0,0 to strand2
             // EX: If you are at 0,3 (j = 3), add "---" to strand2
             for (int k = 0; k < j; k++) {
-                alignedStrand2 = "-" + alignedStrand2;
+                alignedStrand1 = "-" + alignedStrand1;
+                alignedStrand2 = strand2.charAt(j-1) + alignedStrand2;
             }
         // If you are at the left most side of the matrix
         } else {
             // Append "-" for every space you are away from 0,0 to strand1
             // EX: If you are at 3,0 (i = 3), add "---" to strand1
             for (int k = 0; k < i; k++) {
-                alignedStrand1 = "-" + alignedStrand1;
+                alignedStrand1 = strand1.charAt(i-1) + alignedStrand1;
+                alignedStrand2 = "-" + alignedStrand2;
             }
         }
 
@@ -165,10 +168,10 @@ public class NeedlemanWunsch {
     }
 
     public static void main(String[] args) {
-        alignStrands("UGU", "UUA");
-        System.out.println();
-        alignStrands("GATTACA", "GCATGCU");
-        System.out.println();
-        alignStrands("UGAC", "UUGAGC");
+       alignStrands("ABC", "CAB");
+//        System.out.println();
+//        alignStrands("GATTACA", "GCATGCU");
+//        System.out.println();
+//        alignStrands("UGAC", "UUGAGC");
     }
 }
