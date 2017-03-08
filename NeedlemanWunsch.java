@@ -13,10 +13,23 @@ import java.util.Arrays;
 public class NeedlemanWunsch {
 
     // Default scoring scheme for match, mismatch, and indel
-    public static final int START = 0;
-    public static final int MATCH = 1;
-    public static final int MISMATCH = -100;
-    public static final int INDEL = -1;
+    private final int MATCH;
+    private final int MISMATCH;
+    private final int INDEL;
+
+    private String strand1;
+    private String strand2;
+    
+    private boolean allowMismatch;
+
+    public NeedlemanWunsch(String strand1, String strand2) {
+        MATCH = 1;
+        MISMATCH = -100;
+        INDEL = -1; 
+        this.strand1 = strand1;
+        this.strand2 = strand2;
+    }
+
 
     /**
      * Generates solution matrix given 2 RNA strands.
@@ -24,14 +37,14 @@ public class NeedlemanWunsch {
      *
      * @return the solution matrix
      */
-    public static int[][] findSolution(String strand1, String strand2) {
+    public int[][] findSolution() {
         // Generate solution matrix based on lengths of both strands
         // Let strand1 be the side strand
         // Let strand2 be the top strand
         int[][] solution = new int[strand1.length()+1][strand2.length()+1];
 
         // Set the starting point to value of START
-        solution[0][0] = START;
+        solution[0][0] = 0;
 
         // Fill in the top row. Moving to the right always adds the value of INDEL.
         for (int i = 1; i < strand2.length()+1; i++) {
@@ -71,7 +84,7 @@ public class NeedlemanWunsch {
      *
      * @return the maximum of the three given integers
      */
-    private static int max(int a, int b, int c) {
+    private int max(int a, int b, int c) {
         return Math.max(Math.max(a, b), c);
     }
 
@@ -83,7 +96,7 @@ public class NeedlemanWunsch {
       * 
       * @return the two aligned RNA strands
       */
-    public static String[] findPath(int[][] solution, String strand1, String strand2, boolean allowMismatch) {
+    public String[] findPath(int[][] solution, boolean allowMismatch) {
         // Let strand1 be the side strand
         // Let strand2 be the top strand
         String alignedStrand1 = "";
@@ -152,7 +165,7 @@ public class NeedlemanWunsch {
         return new String[] {alignedStrand1, alignedStrand2};
     }
     
-    public static String[] recursiveFindPath(int[][] solution, String strand1, String strand2, int i, int j, boolean allowMismatch) {
+    public String[] recursiveFindPath(int[][] solution, int i, int j, boolean allowMismatch) {
         String alignedStrand1 = "";
         String alignedStrand2 = "";
 
@@ -213,7 +226,7 @@ public class NeedlemanWunsch {
             j -= 1;
         }
 
-        String[] alignedStrands = recursiveFindPath(solution, strand1, strand2, i, j, allowMismatch);
+        String[] alignedStrands = recursiveFindPath(solution, i, j, allowMismatch);
         alignedStrand1 = alignedStrands[0] + alignedStrand1;
         alignedStrand2 = alignedStrands[1] + alignedStrand2;
 
@@ -225,29 +238,21 @@ public class NeedlemanWunsch {
      * Method that abstracts away findSolution and findPath.
      * Prints out the aligned strands and alignment score.
      */
-    public static void alignStrands(String strand1, String strand2) {
-        int[][] solution = findSolution(strand1, strand2);
+    public void alignStrands() {
+        int[][] solution = findSolution();
         System.out.println(Arrays.deepToString(solution));
         int score = solution[solution.length-1][solution[0].length-1];
-        String[] alignedStrands = findPath(solution, strand1, strand2, false);
+        String[] alignedStrands = findPath(solution, false);
 
         System.out.println(alignedStrands[0]);
         System.out.println(alignedStrands[1]);
 
-        alignedStrands = recursiveFindPath(solution, strand1, strand2, solution.length-1, solution[0].length-1, false);
+        alignedStrands = recursiveFindPath(solution, solution.length-1, solution[0].length-1, false);
 
         System.out.println("RECURSIVE FUN");
         System.out.println(alignedStrands[0]);
         System.out.println(alignedStrands[1]);
 
         System.out.println("The score for this alignment is: " + score);
-    }
-    
-    public static void main(String[] args) {
-       alignStrands("UUAGG", "CGGCC");
-//        System.out.println();
-//        alignStrands("GATTACA", "GCATGCU");
-//        System.out.println();
-//        alignStrands("UGAC", "UUGAGC");
     }
 }
