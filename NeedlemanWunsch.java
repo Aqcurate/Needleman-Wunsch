@@ -58,7 +58,7 @@ public class NeedlemanWunsch {
                     // Position to the left + INDEL
                     // Position above + INDEL
                     // Position top-left + matchVALUE
-                solution[i][j] = max(solution[i][j-1] + INDEL, solution[i-1][j] + INDEL,  solution[i-1][j-1] + matchValue);
+                solution[i][j] = max(solution[i][j-1] + INDEL, solution[i-1][j] + INDEL, solution[i-1][j-1] + matchValue);
             }
         }
 
