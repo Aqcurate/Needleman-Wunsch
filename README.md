@@ -15,20 +15,32 @@ of dynamic programming.
 
 ## Usage
 
-Change the scoring system by changing the final variables.
+Create a NeedlemanWunsch.java object. See constructors for more information.
 
-    public static final int MATCH = x;
-    public static final int MISMATCH = x;
-    public static final int INDEL = x;
+    // Two strands
+    NeedlemanWunsch n1 = new NeedlemanWunsch("ABC", "CAB");
+    // Two strands + no mismatching allowed
+    NeedlemanWunsch n2 = new NeedlemanWunsch("ABC", "CAB", false);
+    // Two strands + different MATCH/MISMATCH/INDEL scoring system
+    NeedlemanWunsch n3 = new NeedlemanWunsch("ABC", "CAB", 2, -2, -1);
+    // Two strands + different MATCH/MISMATCH/INDEL scoring system + no mismatching allowed
+    NeedlemanWunsch n4 = new NeedlemanWunsch("ABC", "CAB", 2, -2, -1, false);
 
-Call the alignStrands method in main.
+Call methods on the object.
 
-    alignStrands("GATTACA", "GCATGCU");
+    // Prints out aligned strands and alignment score
+    n1.printStrandInfo();
+    // Get score
+    n2.getScore();
+    // Get solution matrix
+    n3.getSolution();
+    // Get alignedStrands;
+    n4.getAlignedStrands();
 
-Compile and run the java file.
+Compile and run the java files. See the example Main.java.
 
-    javac NeedlemanWunsch.java
-    java NeedlemanWunsch 
+    javac *.java
+    java Main
 
 ## License
 This java implementation is released under the [MIT License](LICENSE).

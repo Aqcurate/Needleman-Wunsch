@@ -344,4 +344,16 @@ public class NeedlemanWunsch {
         // Print out strand score
         System.out.println("The score for this alignment is: " + score);
     }
+
+    public int[][] getSolution() {
+        return solution;
+    }
+
+    public int getScore() {
+        return score;
+    }
+
+    public String[] getAlignedStrands() {
+        return alignedStrands;
+    }
 }
