@@ -83,7 +83,7 @@ public class NeedlemanWunsch {
       * 
       * @return the two aligned RNA strands
       */
-    public static String[] findPath(int[][] solution, String strand1, String strand2) {
+    public static String[] findPath(int[][] solution, String strand1, String strand2, boolean allowMismatch) {
         // Let strand1 be the side strand
         // Let strand2 be the top strand
         String alignedStrand1 = "";
@@ -98,20 +98,11 @@ public class NeedlemanWunsch {
         // While you are not at the top/left side of the matrix
         // This prevents an OOB exception
         while (i != 0  && j != 0) {
+            if (strand1.charAt(i-1) != strand2.charAt(j-1) && !allowMismatch) best = Math.max(solution[i][j-1], solution[i-1][j]);
+            else best = max(solution[i][j-1], solution[i-1][j], solution[i-1][j-1]);
             // Calculate the best path to the current position
-            // Check position to the left, above, and top-left
-            best = max(solution[i][j-1], solution[i-1][j],  solution[i-1][j-1]);
-            // If the top-left position is the best
-            if (solution[i-1][j-1] == best) {
-                // Add the character corresponding to that position to both strands
-                // This is the case for either a match or mismatch
-                alignedStrand1 = strand1.charAt(i-1) + alignedStrand1;
-                alignedStrand2 = strand2.charAt(j-1) + alignedStrand2;
-                // Move to the new position
-                i -= 1;
-                j -= 1;
             // If the left position is the best
-            } else if (solution[i][j-1] == best) {
+            if (solution[i][j-1] == best) {
                 // Add '-' to strand1
                 // Add the character correponding to that position to strand2
                 // This represents a gap in the side strand
@@ -120,7 +111,7 @@ public class NeedlemanWunsch {
                 // Move to the new position
                 j -= 1;
             // If the above position is the best
-            } else {
+            } else if (solution[i-1][j] == best) {
                 // Add '-' to strand2
                 // Add the character corresponding to that position to strand1
                 // This represents a gap in the top strand
@@ -128,6 +119,15 @@ public class NeedlemanWunsch {
                 alignedStrand2 = "-" + alignedStrand2;
                 // Move to the new position
                 i -= 1;
+            // If the top-left position is the best
+            } else {
+                // Add the character corresponding to that position to both strands
+                // This is the case for either a match or mismatch
+                alignedStrand1 = strand1.charAt(i-1) + alignedStrand1;
+                alignedStrand2 = strand2.charAt(j-1) + alignedStrand2;
+                // Move to the new position
+                i -= 1;
+                j -= 1;
             }
         }
 
@@ -137,14 +137,14 @@ public class NeedlemanWunsch {
             // EX: If you are at 0,3 (j = 3), add "---" to strand2
             for (int k = 0; k < j; k++) {
                 alignedStrand1 = "-" + alignedStrand1;
-                alignedStrand2 = strand2.charAt(j-1) + alignedStrand2;
+                alignedStrand2 = strand2.charAt(j-k) + alignedStrand2;
             }
         // If you are at the left most side of the matrix
         } else {
             // Append "-" for every space you are away from 0,0 to strand1
             // EX: If you are at 3,0 (i = 3), add "---" to strand1
             for (int k = 0; k < i; k++) {
-                alignedStrand1 = strand1.charAt(i-1) + alignedStrand1;
+                alignedStrand1 = strand1.charAt(i-k) + alignedStrand1;
                 alignedStrand2 = "-" + alignedStrand2;
             }
         }
@@ -152,26 +152,26 @@ public class NeedlemanWunsch {
         return new String[] {alignedStrand1, alignedStrand2};
     }
     
-    public static String[] recursiveFindPath(int[][] solution, String strand1, String strand2, int i, int j) {
+    public static String[] recursiveFindPath(int[][] solution, String strand1, String strand2, int i, int j, boolean allowMismatch) {
         String alignedStrand1 = "";
         String alignedStrand2 = "";
 
         // If you are at the top of the matrix
         if (i == 0) {
-            // Append "-" for every space you are away from 0,0 to strand2
-            // EX: If you are at 0,3 (j = 3), add "---" to strand2
+            // Append "-" for every space you are away from 0,0 to strand1
+            // EX: If you are at 0,3 (j = 3), add "---" to strand1
             for (int k = 0; k < j; k++) {
                 alignedStrand1 = "-" + alignedStrand1;
-                alignedStrand2 = strand2.charAt(j-1) + alignedStrand2;
+                alignedStrand2 = strand2.charAt(j-k) + alignedStrand2;
             }
 
             return new String[] {alignedStrand1, alignedStrand2};
         // If you are at the left most side of the matrix
         } else if (j == 0) {
-            // Append "-" for every space you are away from 0,0 to strand1
+            // Append "-" for every space you are away from 0,0 to strand2
             // EX: If you are at 3,0 (i = 3), add "---" to strand1
             for (int k = 0; k < i; k++) {
-                alignedStrand1 = strand1.charAt(i-1) + alignedStrand1;
+                alignedStrand1 = strand1.charAt(i-k) + alignedStrand1;
                 alignedStrand2 = "-" + alignedStrand2;
             }
 
@@ -180,18 +180,12 @@ public class NeedlemanWunsch {
 
         // Calculate the best path to the current position
         // Check position to the left, above, and top-left
-        int best = max(solution[i][j-1], solution[i-1][j],  solution[i-1][j-1]);
-        // If the top-left position is the best
-        if (solution[i-1][j-1] == best) {
-            // Add the character corresponding to that position to both strands
-            // This is the case for either a match or mismatch
-            alignedStrand1 = "" + strand1.charAt(i-1);
-            alignedStrand2 = "" + strand2.charAt(j-1);
-            // Move to the new position
-            i -= 1;
-            j -= 1;
+        int best;
+        if (strand1.charAt(i-1) != strand2.charAt(j-1) && !allowMismatch) best = Math.max(solution[i][j-1], solution[i-1][j]);
+        else best = max(solution[i][j-1], solution[i-1][j],  solution[i-1][j-1]);
+
         // If the left position is the best
-        } else if (solution[i][j-1] == best) {
+        if (solution[i][j-1] == best) {
             // Add '-' to strand1
             // Add the character correponding to that position to strand2
             // This represents a gap in the side strand
@@ -200,7 +194,7 @@ public class NeedlemanWunsch {
             // Move to the new position
             j -= 1;
         // If the above position is the best
-        } else {
+        } else if (solution[i-1][j] == best) {
             // Add '-' to strand2
             // Add the character corresponding to that position to strand1
             // This represents a gap in the top strand
@@ -208,9 +202,18 @@ public class NeedlemanWunsch {
             alignedStrand2 = "-";
             // Move to the new position
             i -= 1;
+        // If the top-left position is the best
+        } else {
+            // Add the character corresponding to that position to both strands
+            // This is the case for either a match or mismatch
+            alignedStrand1 = "" + strand1.charAt(i-1);
+            alignedStrand2 = "" + strand2.charAt(j-1);
+            // Move to the new position
+            i -= 1;
+            j -= 1;
         }
 
-        String[] alignedStrands = recursiveFindPath(solution, strand1, strand2, i, j);
+        String[] alignedStrands = recursiveFindPath(solution, strand1, strand2, i, j, allowMismatch);
         alignedStrand1 = alignedStrands[0] + alignedStrand1;
         alignedStrand2 = alignedStrands[1] + alignedStrand2;
 
@@ -226,12 +229,12 @@ public class NeedlemanWunsch {
         int[][] solution = findSolution(strand1, strand2);
         System.out.println(Arrays.deepToString(solution));
         int score = solution[solution.length-1][solution[0].length-1];
-        String[] alignedStrands = findPath(solution, strand1, strand2);
+        String[] alignedStrands = findPath(solution, strand1, strand2, false);
 
         System.out.println(alignedStrands[0]);
         System.out.println(alignedStrands[1]);
 
-        alignedStrands = recursiveFindPath(solution, strand1, strand2, solution.length-1, solution[0].length-1);
+        alignedStrands = recursiveFindPath(solution, strand1, strand2, solution.length-1, solution[0].length-1, false);
 
         System.out.println("RECURSIVE FUN");
         System.out.println(alignedStrands[0]);
