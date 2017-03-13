@@ -25,7 +25,11 @@ public class Main {
         NeedlemanWunsch n1 = new NeedlemanWunsch("CGUCC", "GCCC", 5, -3, -5, true);
         // Print out the information
         n1.printStrandInfo(); 
+        System.out.println(Arrays.deepToString(n1.getSolution()));
 
+        // Strand1 = CGUCC
+        // Strand2 = GCCC
+        // Do notn allow mismatching
         NeedlemanWunsch n2 = new NeedlemanWunsch("CGUCC", "GCCC", false);
         n2.printStrandInfo();
     }
