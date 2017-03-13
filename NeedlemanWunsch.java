@@ -103,6 +103,7 @@ public class NeedlemanWunsch {
         this.score = solution[solution.length-1][solution[0].length-1];
         // Calculate aligned strands
         this.alignedStrands = recursiveFindPath(solution.length-1, solution[0].length-1);
+        // this.alignedStrands = findPath();
     }
 
     /**
@@ -180,8 +181,8 @@ public class NeedlemanWunsch {
         int i = solution.length - 1;
         int j = solution[0].length - 1;
 
-        int best;
         boolean matchAllowed;
+        int matchValue;
 
         // While you are not at the top/left side of the matrix
         // This prevents an OOB exception
@@ -191,11 +192,12 @@ public class NeedlemanWunsch {
             // If the characters are different, and mismatching is not allowed
             // Diagonal moves are not legal
             if (strand1.charAt(i-1) != strand2.charAt(j-1) && !allowMismatch) matchAllowed = false;
-            // Calculate the highest value of the top-left, above, and left positions.
-            best = max(solution[i][j-1], solution[i-1][j], solution[i-1][j-1]);
+            // Calculate whether the diagonal move value
+            if (strand1.charAt(i-1) == strand2.charAt(j-1)) matchValue = MATCH;
+            else matchValue = MISMATCH;
             // Calculate the best path to the current position
-            // If the top-left position is the best
-            if (solution[i-1][j-1] == best && matchAllowed) {
+            // If the top-left position is a valid traceback
+            if (solution[i-1][j-1] == solution[i][j] - matchValue && matchAllowed) {
                 // Add the character corresponding to that position to both strands
                 // This is the case for either a match or mismatch
                 alignedStrand1 = strand1.charAt(i-1) + alignedStrand1;
@@ -203,8 +205,8 @@ public class NeedlemanWunsch {
                 // Move to the new position
                 i -= 1;
                 j -= 1;
-            // If the left position is the best
-            } else if (solution[i][j-1] == best) {
+            // If the left position is a valid traceback
+            } else if (solution[i][j-1] == solution[i][j] - INDEL) {
                 // Add '-' to strand1
                 // Add the character correponding to that position to strand2
                 // This represents a gap in the side strand
@@ -212,7 +214,7 @@ public class NeedlemanWunsch {
                 alignedStrand2 = strand2.charAt(j-1) + alignedStrand2;
                 // Move to the new position
                 j -= 1;
-            // If the above position is the best
+            // If the above position is a valid trackback
             } else {
                 // Add '-' to strand2
                 // Add the character corresponding to that position to strand1
@@ -286,16 +288,18 @@ public class NeedlemanWunsch {
 
         // Calculate the best path to the current position
         // Check position to the left, above, and top-left
-        int best;
         boolean matchAllowed = true;
+        int matchValue;
 
         // If the characters are different, and mismatching is not allowed
         // Diagonal moves are not legal
         if (strand1.charAt(i-1) != strand2.charAt(j-1) && !allowMismatch) matchAllowed = false;
-        best = max(solution[i][j-1], solution[i-1][j],  solution[i-1][j-1]);
+        // Calculate whether the diagonal move value
+        if (strand1.charAt(i-1) == strand2.charAt(j-1)) matchValue = MATCH;
+        else matchValue = MISMATCH;
 
-        // If the top-left position is the best
-        if (solution[i-1][j-1] == best && matchAllowed) {
+        // If the top-left position is a valid traceback
+        if (solution[i-1][j-1] == solution[i][j] - matchValue && matchAllowed) {
             // Add the character corresponding to that position to both strands
             // This is the case for either a match or mismatch
             alignedStrand1 = "" + strand1.charAt(i-1);
@@ -303,8 +307,8 @@ public class NeedlemanWunsch {
             // Move to the new position
             i -= 1;
             j -= 1;
-        // If the left position is the best
-        } else if (solution[i][j-1] == best) {
+        // If the left position is a valid traceback
+        } else if (solution[i][j-1] == solution[i][j] - INDEL) {
             // Add '-' to strand1
             // Add the character correponding to that position to strand2
             // This represents a gap in the side strand
@@ -312,7 +316,7 @@ public class NeedlemanWunsch {
             alignedStrand2 = "" + strand2.charAt(j-1);
             // Move to the new position
             j -= 1;
-        // If the above position is the best
+        // If the above position is a valid traceback
         } else {
             // Add '-' to strand2
             // Add the character corresponding to that position to strand1
@@ -345,14 +349,26 @@ public class NeedlemanWunsch {
         System.out.println("The score for this alignment is: " + score);
     }
 
+    /**
+     * Method to get the solution matrix.
+     * @return the solution matrix
+     */
     public int[][] getSolution() {
         return solution;
     }
 
+    /**
+     * Method to get the final score.
+     * @return the final score
+     */
     public int getScore() {
         return score;
     }
 
+    /**
+     * Method to return the aligned Strands.
+     * @return the aligned strands
+     */
     public String[] getAlignedStrands() {
         return alignedStrands;
     }
