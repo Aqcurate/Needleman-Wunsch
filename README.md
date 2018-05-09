@@ -1,5 +1,4 @@
 # Nucleotide Alignment - Needleman Wunsch
-[![Code Climate](https://codeclimate.com/github/EscapingGithub/Needleman-Wunsch/badges/gpa.svg)](https://codeclimate.com/github/EscapingGithub/Needleman-Wunsch)
 
 **Version:** 2.0.0
 
